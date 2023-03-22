@@ -1,0 +1,57 @@
+# Exercise 1: SSH
+# 1. Créez un compte sur une plateforme de cloud computing (AWS, Azure, Google Cloud, IBM Cloud)
+
+# 2. Créez une instance de serveur sur le site Web de votre plateforme cloud (ec2 pour AWS, Standard B1s pour Azure)
+
+# 3. Connectez-vous au serveur distant via votre terminal
+# — Utilisez chmod 400 sur votre fichier de clé privée. La connexion ne fonctionnera pas autrement
+chmod 400 my_private_key.pem
+
+# — Utilisez une instruction SSH pour vous connecter à votre instance distante
+ssh -i my_private_key.pem user@remote_instance_ip
+
+# — Utilisez "exit" pour revenir à votre machine locale
+exit
+
+# 4. Créez un script nommé connect.sh pour vous connecter automatiquement à l'instance distante
+echo '#!/bin/bash
+ssh -i my_private_key.pem user@remote_instance_ip' > connect.sh
+
+# 5. Exécutez le script pour vérifier qu'il fonctionne correctement. Ensuite, utilisez "exit" pour revenir à votre machine locale.
+bash connect.sh
+
+# 6. Renommez votre clé privée pour en faire un fichier caché. Propagez les modifications à votre script. Exécutez le script.
+mv my_private_key.pem .my_private_key.pem
+sed -i 's/my_private_key.pem/.my_private_key.pem/' connect.sh
+bash connect.sh
+
+# Exercise 2: SCP
+# 1. Sur votre machine locale, créez un fichier nommé test_to_remote_instance.txt
+touch test_to_remote_instance.txt
+
+# 2. Connectez-vous à votre instance distante et créez un fichier nommé test_from_remote_instance.txt.
+# Ensuite, utilisez "exit" pour revenir à votre machine locale.
+ssh -i .my_private_key.pem user@remote_instance_ip "touch test_from_remote_instance.txt"
+exit
+
+# 3. Utilisez la commande scp pour :
+# — Envoyer votre fichier test_to_remote_instance.txt au dossier "home" de votre instance distante
+scp -i .my_private_key.pem test_to_remote_instance.txt user@remote_instance_ip:~
+
+# — Récupérer le fichier test_from_remote_instance.txt dans votre répertoire local actuel
+scp -i .my_private_key.pem user@remote_instance_ip:test_from_remote_instance.txt .
+
+# 4. Créez deux scripts :
+# — scp_to_remote_instance.sh et scp_from_remote_instance.sh pour envoyer et recevoir respectivement des données avec votre instance distante
+echo '#!/bin/bash
+scp -i .my_private_key.pem "$1" user@remote_instance_ip:~' > scp_to_remote_instance.sh
+
+echo '#!/bin/bash
+scp -i .my_private_key.pem user@remote_instance_ip:"$1" .' > scp_from_remote_instance.sh
+
+# — Vos scripts doivent utiliser le chemin du fichier à envoyer/recevoir en tant qu'argument
+chmod +x scp_to_remote_instance.sh scp_from_remote_instance.sh
+
+# 5. Testez vos scripts avec différents fichiers
+./scp_to_remote_instance.sh test_to_remote_instance.txt
+./scp_from_remote_instance.sh test_from_remote_instance.txt
